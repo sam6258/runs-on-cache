@@ -100608,9 +100608,12 @@ function downloadCache(archiveLocation, archivePath, options) {
                     Key: objectKey
                 });
                 const url = yield getSignedUrl(s3Client, command, {
-                    expiresIn: 3600
+                    expiresIn: 3600,
+                    unhoistableHeaders: new Set(["x-amz-content-sha256"])
                 });
-                yield (0, downloadUtils_1.downloadCacheHttpClientConcurrent)(url, archivePath, Object.assign(Object.assign({}, options), { downloadConcurrency: downloadQueueSize, concurrentBlobDownloads: true, partSize: downloadPartSize }));
+                yield (0, downloadUtils_1.downloadCacheHttpClientConcurrent)(url, archivePath, Object.assign(Object.assign({}, options), { downloadConcurrency: downloadQueueSize, concurrentBlobDownloads: true, partSize: downloadPartSize, additionalHeaders: {
+                        "x-amz-content-sha256": "UNSIGNED-PAYLOAD"
+                    } }));
                 // If we get here, download succeeded
                 return;
             }
@@ -101080,7 +101083,8 @@ function downloadCacheHttpClientConcurrent(archiveLocation, archivePath, options
         const archiveDescriptor = yield fs.promises.open(archivePath, "w");
         const httpClient = new http_client_1.HttpClient("actions/cache", undefined, {
             socketTimeout: options.timeoutInMs,
-            keepAlive: true
+            keepAlive: true,
+            headers: options.additionalHeaders
         });
         let progress;
         try {

@@ -8,6 +8,7 @@ import { retryHttpClientResponse } from "@actions/cache/lib/internal/requestUtil
 
 export interface RunsOnDownloadOptions extends DownloadOptions {
     partSize: number;
+    additionalHeaders?: Record<string, string>;
 }
 
 /**
@@ -158,7 +159,8 @@ export async function downloadCacheHttpClientConcurrent(
     const archiveDescriptor = await fs.promises.open(archivePath, "w");
     const httpClient = new HttpClient("actions/cache", undefined, {
         socketTimeout: options.timeoutInMs,
-        keepAlive: true
+        keepAlive: true,
+        headers: options.additionalHeaders
     });
     let progress: DownloadProgress | undefined;
     try {

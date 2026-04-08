@@ -165,14 +165,18 @@ export async function downloadCache(
                 Key: objectKey
             });
             const url = await getSignedUrl(s3Client, command, {
-                expiresIn: 3600
+                expiresIn: 3600,
+                unhoistableHeaders: new Set(["x-amz-content-sha256"])
             });
 
             await downloadCacheHttpClientConcurrent(url, archivePath, {
                 ...options,
                 downloadConcurrency: downloadQueueSize,
                 concurrentBlobDownloads: true,
-                partSize: downloadPartSize
+                partSize: downloadPartSize,
+                additionalHeaders: {
+                    "x-amz-content-sha256": "UNSIGNED-PAYLOAD"
+                }
             });
 
             // If we get here, download succeeded
